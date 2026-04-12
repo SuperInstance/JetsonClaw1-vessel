@@ -1,105 +1,176 @@
-# JetsonClaw1 Knowledge Journal
+# JetsonClaw1 Fleet Integration Analysis
+## Where JC1 Repos Plug Into SuperInstance Ecosystem
+### 2026-04-12
 
-## For Other Agents Reading This
+---
 
-This journal captures decisions, lessons, and context that future agents (vessels) need to be productive in this fleet. Think of it as the ship log.
+## 🔴 CRITICAL PATH — Tasks I Can Unblock
 
-## Session 2026-04-11: The Full Steam Build
+### CONF-001: Conformance Vector Runner
+**Task:** Build runner for 88 conformance vectors against Python/C/Rust runtimes.
+**My contribution:** `flux-runtime-c` has 92 tests, the C runtime. I can:
+- Provide the C runtime's actual test results against the conformance vectors
+- The issue (#14) says ALL 88 vectors SKIP against C. I need to update my opcode numbering to match ISA v2 (0x08→0x20 for ADD, etc.)
+- Deliver: C runtime conformance results matrix
+- **Action:** Update flux-runtime-c opcodes to ISA v2, run conformance vectors, report
 
-### What Happened
-Casey said "do it" and "keep good records" and "push often" and "pull out all the stops and use your full abilities" and "turn your academic work into actualized work" and "journal your knowledge for other agents."
+### ISA-001: ISA v3 Design
+**Task:** Draft ISA v3 with escape prefix, compressed shorts, temporal ops, security primitives.
+**My contribution:** `cuda-instruction-set` has 80 opcodes with confidence-fused encoding. I own the edge encoding design.
+- Variable-width encoding (1-3 bytes) for edge devices
+- Confidence-fused opcodes (CAdd, CSub, etc.) as edge-mode extension
+- Deliver: Edge encoding spec as part of ISA v3 dual-mode
+- **Action:** Draft edge encoding section of ISA v3 spec
 
-### The Pipeline We Discovered Works
-1. GLM-5 writes a paper identifying a gap in the FLUX architecture
-2. GLM-5 builds a Rust crate implementing the solution
-3. Tests verify the implementation
-4. Push to GitHub with cross-pollination references
-5. Other vessels can read the MAINTENANCE.md to understand context
+### ISA-002: Escape Prefix Spec
+**Task:** Design 0xFF escape prefix mechanism.
+**My contribution:** `cuda-instruction-set` already uses 0xFE for extended opcodes. I have practical experience with escape encoding.
+- Deliver: Escape prefix spec based on working implementation
+- **Action:** Document escape prefix protocol
 
-This pipeline turns academic exploration into actualized code in ~5 minutes per crate.
+### SEC-001: Security Primitives Design
+**Task:** Design CAP_INVOKE, MEM_TAG, sandbox opcodes.
+**My contribution:** Building `bytecode-verifier-c` (addresses issue #15). Verification IS a security primitive.
+- Bytecode verification before execution (bytecode-verifier-c)
+- Sandbox memory regions (already in flux-runtime-c via memory bounds)
+- Deliver: Security primitive specs + working C implementation
+- **Action:** Push bytecode-verifier-c, contribute to spec
 
-### Architecture Lessons
+---
 
-#### Why Memory-Mapped Ports (Not New Opcodes)
-The ISA is full (0x00-0xFF). Adding new opcodes would break backward compatibility. Solution: reserve the top 4KB of the 64KB address space for typed capability ports. OP_LOAD/OP_STORE become the universal interface. Zero new opcodes, unlimited extensibility.
+## 🟠 HIGH VALUE — Tasks I Can Do
 
-#### Why Confidence is Optional (Not Default)
-The Think Tank decided: default confidence propagation creates zombie values in dead code paths. An agent that never checks confidence still pays the CPU cost of tracking it. Solution: CONF_ variants at 0x70-0x79, StripConf wrapper for speed.
+### CUDA-001: CUDA Kernel for Batch FLUX Execution
+**Task:** Design CUDA kernel for parallel FLUX execution on 1024 CUDA cores.
+**My contribution:** I AM JetsonClaw1. The hardware is here. I can:
+- Design the kernel interface (but cannot compile — no nvcc)
+- Provide actual benchmark data once nvcc is available
+- Deliver: Kernel design doc + pseudocode (done), testing (blocked on nvcc)
+- **Action:** Write kernel pseudocode, post to flux-cuda repo
 
-#### Why Trust Has 5 Dimensions (Not 1)
-Single-value trust is too coarse. A vessel can be competent but selfish, or honest but unreliable. The fleet needs competence, integrity, benevolence, identity, and longevity as separate scores. See hermes-trust-ecology.md for the full design.
+### TRUST-001: cuda-trust → I2I Integration
+**Task:** Wire cuda-trust into I2I protocol for behavioral trust scoring.
+**My contribution:** `cuda-trust` (Rust) has trust scoring with decay, Bayesian updates, revocation.
+- Deliver: Trust scoring module that reads I2I commit history
+- **Action:** Build trust-from-behavior module
 
-#### Why Ethics is Software (Not Opcodes)
-We can't add opcodes for ethics — which opcodes would "do no harm" be? Ethics is a constraint LAYER that reads VM state and vetoes actions. The cuda-ethics crate sits above the VM, not inside it.
+### MECH-001: Mechanic Cron
+**Task:** Periodic fleet scanning via fleet-mechanic.
+**My contribution:** `brothers-keeper` already runs as systemd --user service every 60s. I can extend it to also call fleet-mechanic.
+- Deliver: Cron integration in keeper-c or wrapper script
+- **Action:** Add fleet-mechanic scan to keeper health check
 
-### Mathematical Constants Worth Knowing
+---
 
-#### Decay Half-Lives
-- conf_decay rate 0.99: half-life = 69.3 cycles (confidence persists for ~70 decisions)
-- conf_decay rate 0.95: half-life = 13.5 cycles (rapid forgetting)
-- instinct_decay rate 0.95: half-life = 13.5 activations (habituation in ~14 exposures)
-- trust_decay: variable, depends on interaction frequency
+## 🟡 MEDIUM — Tasks I Can Help With
 
-#### Critical Thresholds
-- Confidence floor for action: 0.10 (below this, agent should defer/escalate)
-- Reflex bypass: intensity > 0.80 (skips deliberation, acts immediately)
-- Convergence rate: 25% toward group mean (balances individuality vs herd)
-- Extinction: intensity < 10/255 (prune instinct)
-- Energy critical: 92% RAM, 0% swap (brothers-keeper triggers)
-- Energy warning: 85% RAM (brothers-keeper alerts)
+### ISA-003: Compressed Instruction Format
+**Task:** Design 2-byte compressed format for top 32 opcodes.
+**My contribution:** `cuda-instruction-set` already uses variable-width (1-3 bytes). I have the frequency analysis from actual fleet usage.
+- Deliver: Frequency analysis + compression proposal
+- **Action:** Analyze opcode usage across cuda-* crates, propose top-32
 
-#### Bayesian Fusion Formula
-P(A|B) = P(B|A) * P(A) / P(B)
-In fleet terms: confidence_fused = evidence_strength * prior_confidence / base_rate
-This is CONF_FUSE (0x74). Use when you have EVIDENCE. Use CONF_MERGE (0x73) when you have RECENCY.
+### ASYNC-001: Async Primitives (SUSPEND/RESUME)
+**Task:** Design SUSPEND/RESUME opcodes.
+**My contribution:** `cuda-ephemeral` has task lifecycle (spawn/complete/cancel). The spawn/complete model IS async primitive design.
+- Deliver: Async primitive spec based on working implementation
+- **Action:** Map ephemeral task lifecycle to SUSPEND/RESUME opcodes
 
-#### Energy Economics
-- ATP market: double auction (buyers bid max, sellers ask min, clear at intersection)
-- Circadian modulation: rate * (0.5 + 0.5 * cos(2pi * phase))
-- Pool contribution incentive: ln(1 + amount) — diminishing returns prevents gaming
-- Crisis rationing: cap withdrawals to sqrt(available / vessels) when pressure > 0.8
+### TEMP-001: Temporal Primitives
+**Task:** Design DEADLINE_BEFORE, YIELD_IF_CONTENTION, PERSIST_CRITICAL_STATE.
+**My contribution:** `cuda-dream-cycle` has time-aware scheduling. `cuda-energy` has circadian rhythm. Time IS already a first-class concept.
+- Deliver: Temporal primitive spec
+- **Action:** Draft based on dream-cycle + energy temporal logic
 
-### File Organization Conventions
+### KEEP-001: Lighthouse Keeper Architecture
+**Task:** Design 3-tier monitoring: Brothers Keeper → Lighthouse Keeper → Tender.
+**My contribution:** `keeper-c` is the Brothers Keeper in C. I can design the aggregation protocol.
+- Deliver: Tier architecture + aggregation protocol
+- **Action:** Design 3-tier aggregation, implement in keeper-c
 
-#### In Each Crate
-- MAINTENANCE.md: Architecture decisions, math formulas, related crates, "why this exists"
-- ARCHITECTURE.md: Detailed design with diagrams
-- CHANGELOG.md: Version history with rationale
-- src/lib.rs: Core types with inline math comments
-- README.md: Build/test/run instructions, API docs, cross-pollination refs
-- The Deeper Connection: Every README ends with a paragraph about fleet-as-organism
+---
 
-#### In FLUX VM
-- flux_vm.c: Main VM (switch dispatch) — the canonical implementation
-- flux_vm_cg.c: Computed goto variant — 4.3x faster on ARM64
-- format_size(): CRITICAL function — determines encoding byte length for each opcode
-- Do NOT add new sections to format_size() — replace the entire function to avoid shadowing
+## 🔵 RESEARCH — Where My Deep Research Papers Help
 
-### Commit Message Convention
+### BOOT-001: What Makes a Good Agent Bootcamp?
+**My contribution:** I just designed the boot camp protocol (Matrix metaphor, 6 phases). Published as seed-pro-boot-camp-protocol.
+- Deliver: Bootcamp spec already exists, needs to be formalized and contributed
+- **Action:** Formalize and contribute to ability-transfer repo
 
-Good commit messages capture the THINKING, not just the change:
-- "add: memory-mapped capability ports" — WHAT
-- "The ISA is full (0x00-0xFF). Rather than break backward compatibility, we reserve the top 4KB of address space for typed I/O ports. OP_LOAD/OP_STORE become universal. Zero new opcodes needed." — WHY
+### DEBUG-001: Multi-Agent Debugging Patterns
+**My contribution:** `fleet-witness-marks` has 12 cataloged bugs with witness marks. `bytecode-verifier-c` adds pre-execution verification.
+- Deliver: Debugging pattern catalog
+- **Action:** Contribute witness marks + verification patterns
 
-### PR Comment Convention
+### COMP-001: LoRA Compression of Agent Abilities
+**My contribution:** My deep research paper on minimum intelligence for self-modification covers the 3 regimes (fixed, parameter, structural mutation).
+- Deliver: Mutation regime analysis for LoRA compression theory
+- **Action:** Connect mutation regimes to LoRA compression
 
-PR comments are "inner thoughts frozen in time." They should answer:
-1. What was I thinking when I wrote this?
-2. What would confuse someone reading this for the first time?
-3. What are the non-obvious constraints?
-4. What breaks if this changes?
+---
 
-### API Status (2026-04-11)
-- DeepInfra (jc1 exclusive): Hermes-405B, phi-4, Hermes-70B — all working
-- DeepSeek: EXPIRED
-- SiliconFlow: EXPIRED (shared with Oracle1)
-- z.ai GLM-5: Working (via OpenClaw subagents)
+## 🔧 MY REPOS → SUPERINSTANCE INTEGRATION MAP
 
-### Key Repos for New Vessels
-- Start here: flux-runtime-c (understand the VM)
-- Then: cuda-instruction-set (understand the ISA)
-- Then: cuda-confidence-math (understand confidence math)
-- Then: cuda-atp-market (understand energy economy)
-- Then: cuda-ethics (understand constraint layer)
-- Explore: fleet-benchmarks/docs/creative-explorations/ (read the thinking)
-- Explore: opcode-philosophy/docs/ (read the philosophy)
+### Direct Fleet Infrastructure
+| JC1 Repo | SuperInstance Integration |
+|----------|--------------------------|
+| flux-runtime-c | flux-runtime (C runtime, needs ISA v2 opcode update) |
+| keeper-c | brothers-keeper + fleet-mechanic (3-tier monitoring) |
+| confidence-c | flux-runtime trust engine (confidence math) |
+| telepathy-c | flux-a2a-signal (binary message transport) |
+| energy-c | flux-runtime energy system (ATP metabolism) |
+| instinct-c | flux-runtime reflex layer (hardwired responses) |
+| bytecode-verifier-c | flux-runtime security (addresses issue #15) |
+
+### Protocol Standards
+| JC1 Repo | SuperInstance Integration |
+|----------|--------------------------|
+| cuda-instruction-set | flux-spec ISA v3 (edge encoding design) |
+| flux-ese-parser | flux-lsp + flux-ide (source language) |
+| cuda-flux-ese-stdlib | flux-fleet-stdlib (standard library modules) |
+
+### Knowledge & Research
+| JC1 Repo | SuperInstance Integration |
+|----------|--------------------------|
+| higher-abstraction-vocabularies | flux-vocabulary (HAV→FLUX bridge) |
+| fleet-witness-marks | flux-conformance (debugging patterns) |
+| opcode-philosophy (papers) | ability-transfer (deep research) |
+| fleet-benchmarks (explorations) | flux-research (creative research) |
+
+### Creative/Experimental
+| JC1 Repo | SuperInstance Integration |
+|----------|--------------------------|
+| cuda-necropolis | fleet-mechanic (dead vessel handling) |
+| cuda-self-evolve | flux-evolution (agent self-improvement) |
+| cuda-dream-cycle | flux-meta-orchestrator (background scheduling) |
+| cuda-grimoire | flux-skills (pattern library) |
+| cuda-social-graph | flux-cooperative-intelligence (network analysis) |
+| cuda-ephemeral | flux-sandbox (task lifecycle) |
+| cuda-telepathy | flux-a2a-signal (A2A messaging) |
+
+---
+
+## 🎯 IMMEDIATE ACTION PLAN
+
+### This Session
+1. ✅ Push bytecode-verifier-c (SEC-001 partial)
+2. ✅ Push energy-c + instinct-c (fleet stdlib modules)
+3. ✅ Publish this integration analysis
+
+### Next Session
+4. Update flux-runtime-c opcodes to ISA v2 (CONF-001 unblock)
+5. Draft ISA v3 edge encoding spec (ISA-001)
+6. Build conformance runner results for C runtime
+7. Implement cuda-trust → I2I integration (TRUST-001)
+8. Design 3-tier monitoring aggregation (KEEP-001)
+9. Create CAPABILITY.toml for JC1-vessel (Oracle1's ask)
+
+### Blocked
+- CUDA-001: needs nvcc on Jetson
+- Flux-wasm: needs WASM toolchain
+- Java tests: needs JDK
+- Go tests: needs Go runtime
+
+---
+
+*JetsonClaw1 ⚡ — Lucineer realm specialist: hardware, low-level systems, fleet infrastructure*
