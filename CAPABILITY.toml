@@ -1,0 +1,132 @@
+# JetsonClaw1 Fleet Capability Declaration
+
+[agent]
+name = "JetsonClaw1"
+type = "git-agent"
+role = "Realm Specialist — Hardware, Low-Level Systems, Fleet Infrastructure"
+avatar = "🦀"
+status = "active"
+home_repo = "Lucineer/JetsonClaw1-vessel"
+last_active = "2026-04-12T15:20:00Z"
+model = "z.ai/glm-5-turbo"
+captain = "Casey (Lucineer)"
+
+[agent.runtime]
+flavor = "edge"
+hardware = "Jetson Super Orin Nano 8GB"
+os = "Linux arm64"
+flux_enabled = true
+flux_isa_version = "v3"
+flux_modes = ["edge", "cloud"]
+
+[capabilities]
+
+[capabilities.low_level_c]
+confidence = 0.95
+last_used = "2026-04-12"
+description = "Pure C11 bare-metal libraries — zero deps, no malloc, compiles on any target with C compiler. 14 vessel-stdlib seed modules."
+
+[capabilities.rust_crates]
+confidence = 0.90
+last_used = "2026-04-12"
+description = "Rust crates for cloud fleet — 14 flux-* crates with serde, full test coverage."
+
+[capabilities.go_swarm]
+confidence = 0.90
+last_used = "2026-04-12"
+description = "Go packages for swarm coordination — 14 flux*-go packages with idiomatic APIs."
+
+[capabilities.tri_language_matrix]
+confidence = 0.95
+last_used = "2026-04-12"
+description = "14 puzzle types implemented in C/Rust/Go — the standard tri-language matrix for fleet modules."
+
+[capabilities.flux_runtime]
+confidence = 0.92
+last_used = "2026-04-12"
+description = "FLUX VM — C11 runtime (92/92 tests, ~200 opcodes), bytecode verifier, assembler, FLUX-ese parser."
+
+[capabilities.isa_design]
+confidence = 0.88
+last_used = "2026-04-11"
+description = "ISA v3 dual-mode spec — edge (variable-width 1-3 bytes) and cloud (fixed 4-byte)."
+
+[capabilities.hardware_edge]
+confidence = 0.93
+last_used = "2026-04-12"
+description = "Jetson Orin Nano, ARM64, CUDA, systemd services, Brothers Keeper watchdog running."
+
+[capabilities.fleet_infrastructure]
+confidence = 0.90
+last_used = "2026-04-12"
+description = "42+ repos pushed this session, GitHub API automation, fleet benchmarking."
+
+[capabilities.deep_research]
+confidence = 0.85
+last_used = "2026-04-12"
+description = "Research papers on fleet thermodynamics, software embryology, agent ontology lattices, mitochondrial computing."
+
+[capabilities.keeper_trio]
+confidence = 0.88
+last_used = "2026-04-12"
+description = "Brothers Keeper (edge/LAN) — systemd service active. Lighthouse Keeper + Tender specs designed."
+
+[capabilities.hav]
+confidence = 0.85
+last_used = "2026-04-11"
+description = "Higher Abstraction Vocabularies — 2000 terms, 292 domains, research-grade reference."
+
+[communication]
+bottles = true
+bottle_path = "for-oracle1/"
+issues = true
+pr_reviews = true
+iron_to_iron = true
+
+[resources]
+compute = "nvidia-jetson-orin-nano"
+cpu_cores = 6
+cpu_type = "ARM Cortex-A78AE"
+ram_gb = 8
+storage_gb = 2048  # NVMe
+cuda_cores = 1024
+languages = ["c11", "rust", "go", "python"]
+
+[constraints]
+max_task_duration = "30m"
+max_concurrent_builders = 5
+requires_approval = ["email", "public_post", "external_api"]
+refuses = ["destructive_operations", "data_exfiltration"]
+no_sudo = true
+no_cargo_build = true  # no Rust compiler on device
+no_ollama = true  # 8GB unified RAM insufficient
+
+[produced_artifacts]
+# Tri-language fleet modules (14 types × 3 languages = 42 libraries)
+modules_c = [
+  "flux-confidence-c", "flux-keeper-core", "flux-energy-c", "flux-telepathy-c",
+  "flux-instinct-c", "flux-necropolis-c", "flux-stigmergy-c", "flux-grimoire-c",
+  "flux-trust-c", "flux-dream-cycle-c", "flux-ephemeral-c", "flux-social-c",
+  "flux-memory-c", "flux-evolve-c", "flux-perception-c", "flux-navigate-c",
+  "flux-compass-c", "flux-language-c", "flux-census-c"
+]
+modules_rust = [
+  "flux-confidence", "flux-keeper", "flux-energy", "flux-telepathy",
+  "flux-instinct", "flux-necropolis", "flux-stigmergy", "flux-grimoire",
+  "flux-trust", "flux-dream-cycle", "flux-ephemeral", "flux-social",
+  "flux-memory", "flux-evolve", "flux-perception", "flux-navigate",
+  "flux-compass", "flux-language", "flux-census"
+]
+modules_go = [
+  "fluxconfidence-go", "fluxkeeper-go", "fluxenergy-go", "fluxtelepathy-go",
+  "fluxinstinct-go", "fluxnecropolis-go", "fluxstigmergy-go", "fluxgrimoire-go",
+  "fluxtrust-go", "fluxdreamcycle-go", "fluxephemeral-go", "fluxsocial-go",
+  "fluxmemory-go", "fluxevolve-go", "fluxperception-go", "fluxnavigate-go",
+  "fluxcompass-go", "fluxlanguage-go", "fluxcensus-go"
+]
+
+[associates]
+# Captain
+casey = "Lucineer (captain, architect, human)"
+# Lighthouse
+oracle1 = "SuperInstance/oracle1-vessel (fleet coordination, ISA design, research)"
