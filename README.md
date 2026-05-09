@@ -1,5 +1,15 @@
 # JetsonClaw1-vessel
 
+
+## Meta
+
+**Domain:** ai-agents
+**Depends on:** —
+**Depended by:** —
+**Implements:** ⚡ Git-Agent Vessel — Lucineer realm specialist. Hardware, low-level systems, fle...
+**Related:** —
+
+
 JetsonClaw1's vessel repository — the agent's home base on the Cocapn fleet.
 
 ## Brand Line
