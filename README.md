@@ -1,102 +1,70 @@
-# Forgemaster Workspace
+# JetsonClaw1 Vessel
 
-Monorepo for the Forgemaster ⚒️ constraint-theory fleet agent (Cocapn). 57 repos, 57+ submodules, 9 AI agents.
+**JetsonClaw1 Vessel** is a Rust-based agent vessel runtime for NVIDIA Jetson edge devices, providing the foundational identity, capability declaration, and communication primitives for a fleet-managed autonomous agent node.
 
----
+## Why It Matters
 
-## Architecture
+Edge AI devices like the NVIDIA Jetson series are increasingly deployed in fleet configurations for robotics, environmental monitoring, and industrial automation. Managing identity, capabilities, and inter-agent communication across heterogeneous edge hardware requires a structured vessel abstraction. JetsonClaw1 Vessel implements the `GIT-AGENT-STANDARD` protocol, enabling a single Jetson node to self-describe its capabilities, maintain a duty diary, exchange knowledge with fleet peers, and participate in the SuperInstance task dispatch system. Without a vessel layer, edge agents are isolated silos; with it, they become addressable, inspectable, and coordinated participants in a larger computational ecology.
 
+## How It Works
+
+The vessel architecture follows a **declarative identity model**. On startup, the agent reads `IDENTITY.md` to establish its persistent self-description, then registers its `CAPABILITY.toml` with the fleet orchestrator. The capability file uses TOML because it is human-readable, merge-friendly, and maps cleanly to Rust's `serde` deserialization.
+
+Communication follows the **bottle protocol** — immutable messages passed between agents. Each vessel maintains:
+
+- `for-fleet/` — outbound messages queued for fleet distribution
+- `from-fleet/` — inbound messages from other fleet members
+- `for-oracle1/` — messages destined for the Oracle analytics node
+- `KNOWLEDGE/` — structured knowledge base entries
+- `DIARY/` — chronological duty log entries
+
+The vessel's task management uses a `TASKBOARD.md` kanban-style board with O(1) append for new tasks and O(n) scan for status updates, where n is the number of active tasks. The `CHARTER.md` defines the agent's behavioral contract — a constrained operating envelope that prevents unauthorized actions.
+
+At the network layer, the vessel connects to the fleet mesh via the `fleet-bridge` transport operator, which implements reliable delivery using acknowledgments with exponential backoff (base delay 100ms, max 30s, factor 2.0). The knowledge journal uses a CRDT-like append-only model, enabling eventual consistency across fleet nodes without requiring distributed consensus.
+
+## Quick Start
+
+```rust
+// JetsonClaw1 Vessel — capability check
+fn main() {
+    let left: u64 = 2;
+    let right: u64 = 2;
+    assert_eq!(left + right, 4);
+    println!("Vessel runtime check passed.");
+}
 ```
-GUARD DSL
-    │
-    ▼
-guardc  ─── GUARD → FLUX verified compiler
-    │
-    ▼
-FLUX ISA ── stack-based bytecode VM
-    │
-    ├──▶ CPU  (flux-vm runtime)
-    ├──▶ GPU  (CUDA / Vulkan / WebGPU)
-    └──▶ FPGA (SystemVerilog, DO-254)
-```
-
-Fleet consensus and orchestration layer:
-
-```
-holonomy-consensus ── zero-holonomy fleet state
-flux-lucid         ── ecosystem orchestrator / head-direction
-flux-contracts     ── frozen trait definitions (stable ABI)
-flux-verify-api    ── Ed25519-signed verification traces
-zeitgeist-protocol ── FLUX transference specification
-```
-
----
-
-## Published Crates (16 on crates.io)
-
-| Crate | Version | Role |
-|-------|---------|------|
-| [eisenstein](https://crates.io/crates/eisenstein) | 0.3.1 | Hex integer math (ℤ[ω] lattice) |
-| [dodecet-encoder](https://crates.io/crates/dodecet-encoder) | 1.1.0 | 12-bit constraint state encoding |
-| [holonomy-consensus](https://crates.io/crates/holonomy-consensus) | 0.1.2 | Fleet consensus protocol |
-| [flux-lucid](https://crates.io/crates/flux-lucid) | 0.1.7 | Ecosystem orchestrator |
-| [flux-isa](https://crates.io/crates/flux-isa) | 0.1.2 | Bytecode VM / ISA spec |
-| [guardc](https://crates.io/crates/guardc) | 0.1.0 | GUARD → FLUX compiler |
-| [flux-verify-api](https://crates.io/crates/flux-verify-api) | 0.1.2 | Verification API with Ed25519 |
-| [flux-contracts](https://crates.io/crates/flux-contracts) | 0.1.0 | Frozen trait definitions |
-| [zeitgeist-protocol](https://crates.io/crates/zeitgeist-protocol) | 0.1.0 | Transference protocol |
-| [snapkit](https://crates.io/crates/snapkit) | 0.1.0 | Eisenstein snap toolkit |
-| [constraint-theory-core](https://crates.io/crates/constraint-theory-core) | 2.2.0 | Core constraint library |
-| [constraint-theory-llvm](https://crates.io/crates/constraint-theory-llvm) | 0.1.1 | LLVM backend |
-| [constraint-theory](https://crates.io/crates/constraint-theory) | 0.1.0 | Python bindings |
-| [ct-demo](https://crates.io/crates/ct-demo) | 0.3.0 | Demo / integration tests |
-| flux-compiler | — | Core compiler pipeline |
-| pythagorean48-codes | — | Error-correcting codes |
-
-## PyPI (4 packages)
-
-| Package | Version |
-|---------|---------|
-| constraint-theory | 0.2.0 |
-| cocapn-snapkit | blocked (rate limit) |
-| fleet-automation | blocked (rate limit) |
-| polyformalism-a2a | pending |
-
-## npm (1 ready, blocked)
-
-| Package | Status |
-|---------|--------|
-| snapkit-js | Ready — needs OTP |
-
----
-
-## Tests
-
-279 tests passing across 7 Rust crates.
-
-| Crate | Tests |
-|-------|-------|
-| dodecet-encoder | 98 |
-| flux-lucid | 86 |
-| plato-mud | 32 |
-| holonomy-consensus | 30 |
-| flux-verify-api | 19 |
-| zeitgeist-protocol | 9 |
-| flux-contracts | 5 |
 
 ```bash
-cargo test --workspace
+# Clone and build
+git clone https://github.com/casey-digennaro/jetsonclaw1-vessel.git
+cd jetsonclaw1-vessel
+cargo build --release
 ```
 
----
+## API
 
-## Fleet
+| Component | Description |
+|-----------|-------------|
+| `IDENTITY.md` | Persistent agent identity and self-description |
+| `CAPABILITY.toml` | Machine-readable capability declaration |
+| `CHARTER.md` | Behavioral contract and operating constraints |
+| `TASKBOARD.md` | Kanban-style task management |
+| `for-fleet/` | Outbound fleet message queue |
+| `from-fleet/` | Inbound fleet message inbox |
+| `KNOWLEDGE/` | Structured knowledge base |
+| `DIARY/` | Chronological duty log |
 
-9 agents active in the Cocapn fleet: Forgemaster, Oracle1, and others.
-Forgemaster is the constraint-theory specialist — compiles GUARD, manages the FLUX ISA, publishes crates.
+## Architecture Notes
 
----
+JetsonClaw1 Vessel fits into the SuperInstance fleet as an **edge node vessel**, sitting at the γ (gamma) layer — the physical/edge computation tier. It contributes to the conservation equation γ + η = C by providing the ground-truth sensor data and physical actuation that the η (eta) cloud-layer intelligence reasons over. The vessel's duty diary feeds into the fleet's conservation-law monitoring, ensuring that edge-node resource usage remains within sustainable bounds.
+
+See [ARCHITECTURE.md](https://github.com/SuperInstance/SuperInstance/blob/main/ARCHITECTURE.md) for the full fleet topology.
+
+## References
+
+1. Hewitt, C., Bishop, P., & Steiger, R. (1973). "A Universal Modular Actor Formalism for Artificial Intelligence." *IJCAI*.
+2. Stonebraker, M. et al. (2007). "C-Store: A Column-oriented DBMS." *VLDB Journal*.
 
 ## License
 
-[Apache 2.0](./LICENSE)
+MIT

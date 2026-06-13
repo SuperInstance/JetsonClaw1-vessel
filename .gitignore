@@ -1,51 +1,7 @@
-# Build artifacts
 target/
-node_modules/
-__pycache__/
-*.pyc
-.next/
-dist/
-build/
+Cargo.lock
 
-# IDE
-.vscode/
-.idea/
 
-# OS
-.DS_Store
-Thumbs.db
+# Added by cargo
 
-# Env
-.env
-.env.local
-
-# Agent internal state
-.keeper/
-memory/.dreams/
-
-# GPU experiment compiled binaries
-gpu-experiments/exp*
-
-# Keeper ephemera (tracked separately)
-.keeper/ticker/compressed/
-
-# Downloaded/temp
-*.zip
-download/
-.credentials/
-claude/
-flux-research-clone/
-lucineer/
-snapkit-c/*.o
-snapkit-c/*.a
-snapkit-c/*.so
-snapkit-c/test_*
-constraint-demos/
-galois-unification-proofs/
-tile-memory/
-memory-crystal/
-collective-recall-demo/
-neural-plato/
-__pycache__/
-*.pyc
-*.egg-info/
+/target
